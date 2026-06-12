@@ -81,31 +81,31 @@ cast call <VAULT_ADDRESS> "previewDeposit(uint256)(uint256)" 1000000000000000000
 
 ```mermaid
 flowchart LR
-    U["User"]
+    U[User]
 
-    subgraph SettlementLayer["ERC-7575 Settlement Layer"]
-        V1["Vault(USDC)"]
-        V2["Vault(DAI)"]
-        S["ShareToken (18 decimals)"]
-        R["Registry: vault(asset)"]
-        T["SafeTokenTransfers<br/>+ balance check"]
+    subgraph SettlementLayer[ERC-7575 Settlement Layer]
+        V1[Vault USDC]
+        V2[Vault DAI]
+        S[ShareToken 18 decimals]
+        R[Registry asset to vault]
+        T[SafeTokenTransfers balance check]
     end
 
-    U -->|deposit assets| V1
-    U -->|deposit assets| V2
+    U -->|deposit_assets| V1
+    U -->|deposit_assets| V2
 
-    V1 -->|mint shares| S
-    V2 -->|mint shares| S
-    S -->|vault(asset)| R
+    V1 -->|mint_shares| S
+    V2 -->|mint_shares| S
+    S -->|vault_lookup| R
 
-    V1 -->|safe transfer in/out| T
-    V2 -->|safe transfer in/out| T
+    V1 -->|safe_transfer_check| T
+    V2 -->|safe_transfer_check| T
 
-    U -->|redeem shares| S
-    S -->|burn shares| V1
-    S -->|burn shares| V2
-    V1 -->|transfer assets out| U
-    V2 -->|transfer assets out| U
+    U -->|redeem_shares| S
+    S -->|burn_shares| V1
+    S -->|burn_shares| V2
+    V1 -->|transfer_assets_out| U
+    V2 -->|transfer_assets_out| U
 ```
 
 ## Current Status
