@@ -42,6 +42,32 @@ forge build
 forge test -vv
 ```
 
+### Static analysis (Slither)
+
+Slither is integrated in CI (`.github/workflows/test.yml`) with a dedicated `slither` job.
+
+Recommended local setup:
+
+- Python `3.12` (recommended for compatibility)
+- `slither-analyzer`
+
+```bash
+python -m pip install --upgrade pip slither-analyzer
+slither . --exclude-low --exclude-informational --exclude-optimization --filter-paths "lib|test|script|out|cache|broadcast|.deps|artifacts"
+```
+
+Windows workaround (when `slither .` cannot invoke `forge` from Python):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\script\run-slither.ps1
+```
+
+Scan all contracts under `src/`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\script\run-slither.ps1 -AllSource
+```
+
 ### Run a local node
 
 ```bash

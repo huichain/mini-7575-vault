@@ -12,3 +12,11 @@ docs/
 
 # Dotenv file
 .env
+
+# Slither/crytic-compile local artifacts
+.deps/
+artifacts/
+
+# Local Python virtual environments
+.venv/
+.venv-slither/
