@@ -12,6 +12,7 @@ contract VaultTest is Test {
 
     address internal user = makeAddr("user");
     address internal receiver = makeAddr("receiver");
+    address internal operator = makeAddr("operator");
 
     uint256 internal constant AMOUNT = 100e18;
 
@@ -96,5 +97,47 @@ contract VaultTest is Test {
         vm.prank(user);
         vm.expectRevert(IERC7575Errors.ZeroShares.selector);
         vault.redeem(0, user, user);
+    }
+
+    function testRedeemUnauthorizedOperatorReverts() public {
+        vm.prank(user);
+        vault.deposit(AMOUNT, user);
+
+        vm.prank(operator);
+        vm.expectRevert(IERC7575Errors.InsufficientAllowance.selector);
+        vault.redeem(AMOUNT, receiver, user);
+    }
+
+    function testRedeemAuthorizedOperatorSucceeds() public {
+        vm.prank(user);
+        vault.deposit(AMOUNT, user);
+
+        vm.prank(user);
+        assertTrue(vault.approveRedeemer(operator, AMOUNT));
+
+        vm.prank(operator);
+        uint256 assetsOut = vault.redeem(AMOUNT, receiver, user);
+
+        assertEq(assetsOut, AMOUNT);
+        assertEq(vault.shareBalance(user), 0);
+        assertEq(vault.totalAssets(), 0);
+        assertEq(usdc.balanceOf(receiver), AMOUNT);
+    }
+
+    function testRedeemAuthorizedOperatorAllowanceDecreases() public {
+        uint256 depositAmount = 200e18;
+        uint256 redeemAmount = 60e18;
+
+        vm.prank(user);
+        vault.deposit(depositAmount, user);
+
+        vm.prank(user);
+        assertTrue(vault.approveRedeemer(operator, AMOUNT));
+
+        vm.prank(operator);
+        vault.redeem(redeemAmount, receiver, user);
+
+        assertEq(vault.shareAllowance(user, operator), AMOUNT - redeemAmount);
+        assertEq(vault.shareBalance(user), depositAmount - redeemAmount);
     }
 }

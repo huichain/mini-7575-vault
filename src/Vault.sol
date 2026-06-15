@@ -6,8 +6,11 @@ import {IERC7575} from "./interfaces/IERC7575.sol";
 import {IERC7575Errors} from "./interfaces/IERC7575Errors.sol";
 
 contract Vault is IERC7575, IERC7575Errors {
+    event RedeemApproval(address indexed owner, address indexed spender, uint256 shares);
+
     address private immutable _asset;
     mapping(address => uint256) public shareBalance;
+    mapping(address => mapping(address => uint256)) public shareAllowance;
     uint256 public totalShareSupply;
 
     constructor(address asset_) {
@@ -38,6 +41,13 @@ contract Vault is IERC7575, IERC7575Errors {
         return convertToAssets(shares);
     }
 
+    function approveRedeemer(address spender, uint256 shares) external returns (bool) {
+        if (spender == address(0)) revert InvalidReceiver();
+        shareAllowance[msg.sender][spender] = shares;
+        emit RedeemApproval(msg.sender, spender, shares);
+        return true;
+    }
+
     function deposit(uint256 assets, address receiver) external returns (uint256 shares) {
         if (receiver == address(0)) revert InvalidReceiver();
         if (assets == 0) revert ZeroAssets();
@@ -57,7 +67,13 @@ contract Vault is IERC7575, IERC7575Errors {
     function redeem(uint256 shares, address receiver, address owner) external returns (uint256 assets) {
         if (receiver == address(0)) revert InvalidReceiver();
         if (owner == address(0)) revert InvalidOwner();
-        if (owner != msg.sender) revert Unauthorized();
+        if (owner != msg.sender) {
+            uint256 allowed = shareAllowance[owner][msg.sender];
+            if (allowed < shares) revert InsufficientAllowance();
+            if (allowed != type(uint256).max) {
+                shareAllowance[owner][msg.sender] = allowed - shares;
+            }
+        }
         if (shares == 0) revert ZeroShares();
 
         assets = previewRedeem(shares);

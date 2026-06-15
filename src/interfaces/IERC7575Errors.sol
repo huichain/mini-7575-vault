@@ -7,5 +7,6 @@ interface IERC7575Errors {
     error InvalidReceiver();
     error InvalidOwner();
     error InsufficientShares();
+    error InsufficientAllowance();
     error Unauthorized();
 }

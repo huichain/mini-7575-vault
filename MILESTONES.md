@@ -33,6 +33,7 @@ Done when:
 - `deposit` and `redeem` pass end-to-end tests
 - edge-case tests for core reverts are passing
 - `forge test` can run cleanly as the current baseline
+- Progress: delegated redeem authorization added with 3 focused tests and local checks (`forge test` + Slither) passing.
 
 ---
 
