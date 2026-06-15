@@ -6,6 +6,7 @@ import {Vault} from "../src/Vault.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {IERC7575Errors} from "../src/interfaces/IERC7575Errors.sol";
 
+/// @notice Tests for Vault deposit/redeem, preview parity, operator allowance, and decimal scaling.
 contract VaultTest is Test {
     Vault internal vault;
     MockERC20 internal usdc;
@@ -15,6 +16,7 @@ contract VaultTest is Test {
     address internal operator = makeAddr("operator");
 
     uint256 internal constant AMOUNT = 100e18;
+    uint256 internal constant ONE_USDC_6_DECIMALS = 1e6; // 1 whole USDC (6 decimals)
 
     function setUp() public {
         usdc = new MockERC20("Mock USDC", "mUSDC", 18);
@@ -139,5 +141,50 @@ contract VaultTest is Test {
 
         assertEq(vault.shareAllowance(user, operator), AMOUNT - redeemAmount);
         assertEq(vault.shareBalance(user), depositAmount - redeemAmount);
+    }
+
+    function testConvertToShares18DecimalsIsOneToOne() public view {
+        assertEq(vault.convertToShares(1e18), 1e18);
+    }
+
+    // Vault shares are always 18 decimals; 6-decimal assets scale up by 10^12.
+    function testConvertToShares6DecimalsNormalizesTo18() public {
+        MockERC20 usdc6 = new MockERC20("USDC", "USDC", 6);
+        Vault vault6 = new Vault(address(usdc6));
+
+        assertEq(vault6.convertToShares(ONE_USDC_6_DECIMALS), 1e18);
+    }
+
+    function testDepositAndRedeem6DecimalsRoundTrip() public {
+        MockERC20 usdc6 = new MockERC20("USDC", "USDC", 6);
+        Vault vault6 = new Vault(address(usdc6));
+
+        usdc6.mint(user, 10_000e6);
+        vm.prank(user);
+        usdc6.approve(address(vault6), type(uint256).max);
+
+        vm.prank(user);
+        uint256 shares = vault6.deposit(ONE_USDC_6_DECIMALS, user);
+        assertEq(shares, 1e18);
+        assertEq(vault6.shareBalance(user), 1e18);
+
+        vm.prank(user);
+        uint256 assetsOut = vault6.redeem(1e18, user, user);
+        assertEq(assetsOut, ONE_USDC_6_DECIMALS);
+    }
+
+    function testPreviewMatchesDepositFor6Decimals() public {
+        MockERC20 usdc6 = new MockERC20("USDC", "USDC", 6);
+        Vault vault6 = new Vault(address(usdc6));
+
+        usdc6.mint(user, 10_000e6);
+        vm.prank(user);
+        usdc6.approve(address(vault6), type(uint256).max);
+
+        uint256 expectedShares = vault6.previewDeposit(2e6);
+        vm.prank(user);
+        uint256 actualShares = vault6.deposit(2e6, user);
+
+        assertEq(actualShares, expectedShares);
     }
 }

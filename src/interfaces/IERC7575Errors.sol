@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 interface IERC7575Errors {
+    error UnsupportedAssetDecimals();
     error ZeroAssets();
     error ZeroShares();
     error InvalidReceiver();

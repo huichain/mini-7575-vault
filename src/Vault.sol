@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC7575} from "./interfaces/IERC7575.sol";
 import {IERC7575Errors} from "./interfaces/IERC7575Errors.sol";
 
@@ -9,12 +10,17 @@ contract Vault is IERC7575, IERC7575Errors {
     event RedeemApproval(address indexed owner, address indexed spender, uint256 shares);
 
     address private immutable _asset;
+    uint8 private immutable _assetDecimals;
+    uint256 private immutable _scalingFactor;
     mapping(address => uint256) public shareBalance;
     mapping(address => mapping(address => uint256)) public shareAllowance;
     uint256 public totalShareSupply;
 
     constructor(address asset_) {
         _asset = asset_;
+        _assetDecimals = IERC20Metadata(asset_).decimals();
+        if (_assetDecimals > 18) revert UnsupportedAssetDecimals();
+        _scalingFactor = 10 ** (18 - _assetDecimals);
     }
 
     function asset() external view returns (address) {
@@ -25,19 +31,19 @@ contract Vault is IERC7575, IERC7575Errors {
         return IERC20(_asset).balanceOf(address(this));
     }
 
-    function convertToShares(uint256 assets) public pure returns (uint256) {
-        return assets;
+    function convertToShares(uint256 assets) public view returns (uint256) {
+        return assets * _scalingFactor;
     }
 
-    function convertToAssets(uint256 shares) public pure returns (uint256) {
-        return shares;
+    function convertToAssets(uint256 shares) public view returns (uint256) {
+        return shares / _scalingFactor;
     }
 
-    function previewDeposit(uint256 assets) public pure returns (uint256) {
+    function previewDeposit(uint256 assets) public view returns (uint256) {
         return convertToShares(assets);
     }
 
-    function previewRedeem(uint256 shares) public pure returns (uint256) {
+    function previewRedeem(uint256 shares) public view returns (uint256) {
         return convertToAssets(shares);
     }
 

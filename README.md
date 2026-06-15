@@ -106,32 +106,37 @@ cast call <VAULT_ADDRESS> "previewDeposit(uint256)(uint256)" 1000000000000000000
 ## System Architecture
 
 ```mermaid
-flowchart LR
+flowchart TB
     U[User]
 
-    subgraph SettlementLayer[ERC-7575 Settlement Layer]
-        V1[Vault USDC]
-        V2[Vault DAI]
-        S[ShareToken 18 decimals]
-        R[Registry asset to vault]
-        T[SafeTokenTransfers balance check]
+    subgraph SL[ERC-7575 Settlement Layer]
+        direction TB
+        subgraph vaults[Asset Vaults]
+            direction LR
+            V1[USDC Vault]
+            V2[DAI Vault]
+        end
+        S[ShareToken · 18 decimals]
+        subgraph infra[Shared]
+            direction LR
+            R[Registry]
+            T[SafeTokenTransfers]
+        end
     end
 
-    U -->|deposit_assets| V1
-    U -->|deposit_assets| V2
+    U -->|deposit| V1
+    U -->|deposit| V2
+    V1 -->|mint| S
+    V2 -->|mint| S
+    V1 --> T
+    V2 --> T
+    S -.->|lookup| R
 
-    V1 -->|mint_shares| S
-    V2 -->|mint_shares| S
-    S -->|vault_lookup| R
-
-    V1 -->|safe_transfer_check| T
-    V2 -->|safe_transfer_check| T
-
-    U -->|redeem_shares| S
-    S -->|burn_shares| V1
-    S -->|burn_shares| V2
-    V1 -->|transfer_assets_out| U
-    V2 -->|transfer_assets_out| U
+    U -->|redeem| S
+    S -->|burn| V1
+    S -->|burn| V2
+    V1 -->|payout| U
+    V2 -->|payout| U
 ```
 
 ## Current Status
