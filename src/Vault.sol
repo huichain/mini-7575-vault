@@ -3,29 +3,57 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {IERC7575} from "./interfaces/IERC7575.sol";
 import {IERC7575Errors} from "./interfaces/IERC7575Errors.sol";
 import {SafeTokenTransfers} from "./SafeTokenTransfers.sol";
 
-contract Vault is IERC7575, IERC7575Errors {
+contract Vault is IERC7575, ERC165, Ownable, Pausable, IERC7575Errors {
     event RedeemApproval(address indexed owner, address indexed spender, uint256 shares);
+    event VaultActiveStateChanged(bool indexed isActive);
 
     address private immutable _asset;
     uint8 private immutable _assetDecimals;
     uint256 private immutable _scalingFactor;
+    bool private _isActive;
     mapping(address => uint256) public shareBalance;
     mapping(address => mapping(address => uint256)) public shareAllowance;
     uint256 public totalShareSupply;
 
-    constructor(address asset_) {
+    constructor(address asset_) Ownable(msg.sender) {
         _asset = asset_;
         _assetDecimals = IERC20Metadata(asset_).decimals();
         if (_assetDecimals > 18) revert UnsupportedAssetDecimals();
         _scalingFactor = 10 ** (18 - _assetDecimals);
+        _isActive = true;
     }
 
     function asset() external view returns (address) {
         return _asset;
+    }
+
+    function isVaultActive() external view returns (bool) {
+        return _isActive;
+    }
+
+    function setVaultActive(bool active) external onlyOwner {
+        _isActive = active;
+        emit VaultActiveStateChanged(active);
+    }
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(IERC7575).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function totalAssets() public view returns (uint256) {
@@ -55,7 +83,8 @@ contract Vault is IERC7575, IERC7575Errors {
         return true;
     }
 
-    function deposit(uint256 assets, address receiver) external returns (uint256 shares) {
+    function deposit(uint256 assets, address receiver) external whenNotPaused returns (uint256 shares) {
+        if (!_isActive) revert VaultNotActive();
         if (receiver == address(0)) revert InvalidReceiver();
         if (assets == 0) revert ZeroAssets();
 
@@ -70,7 +99,7 @@ contract Vault is IERC7575, IERC7575Errors {
         emit Deposit(msg.sender, receiver, assets, shares);
     }
 
-    function redeem(uint256 shares, address receiver, address owner) external returns (uint256 assets) {
+    function redeem(uint256 shares, address receiver, address owner) external whenNotPaused returns (uint256 assets) {
         if (receiver == address(0)) revert InvalidReceiver();
         if (owner == address(0)) revert InvalidOwner();
         if (owner != msg.sender) {

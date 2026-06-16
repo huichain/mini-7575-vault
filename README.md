@@ -139,6 +139,7 @@ flowchart TB
 - [x] Scope and milestones are defined
 - [x] Minimal runnable `deposit/redeem` baseline is implemented
 - [x] Safe transfer hardening (`SafeTokenTransfers`) wired into deposit/redeem
+- [x] Vault active flag, pause/unpause, and `supportsInterface(IERC7575)`
 - [ ] Public test coverage report pending
 
 ## Companion
