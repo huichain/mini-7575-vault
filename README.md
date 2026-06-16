@@ -112,7 +112,7 @@ flowchart TB
     subgraph SL[ERC-7575 Settlement Layer]
         direction TB
         subgraph vaults[Asset Vaults]
-            direction LR
+            direction TB
             V1[USDC Vault]
             V2[DAI Vault]
         end
@@ -124,19 +124,14 @@ flowchart TB
         end
     end
 
-    U -->|deposit| V1
-    U -->|deposit| V2
-    V1 -->|mint| S
-    V2 -->|mint| S
-    V1 --> T
-    V2 --> T
+    U -->|deposit| vaults
+    vaults -->|mint| S
+    vaults --> T
     S -.->|lookup| R
 
     U -->|redeem| S
-    S -->|burn| V1
-    S -->|burn| V2
-    V1 -->|payout| U
-    V2 -->|payout| U
+    S -->|burn| vaults
+    vaults -->|payout| U
 ```
 
 ## Current Status
