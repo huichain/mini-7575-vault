@@ -138,7 +138,7 @@ flowchart TB
 
 - [x] Scope and milestones are defined
 - [x] Minimal runnable `deposit/redeem` baseline is implemented
-- [ ] Safe transfer hardening (`SafeTokenTransfers`) in progress
+- [x] Safe transfer hardening (`SafeTokenTransfers`) wired into deposit/redeem
 - [ ] Public test coverage report pending
 
 ## Companion

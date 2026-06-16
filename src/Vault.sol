@@ -5,6 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC7575} from "./interfaces/IERC7575.sol";
 import {IERC7575Errors} from "./interfaces/IERC7575Errors.sol";
+import {SafeTokenTransfers} from "./SafeTokenTransfers.sol";
 
 contract Vault is IERC7575, IERC7575Errors {
     event RedeemApproval(address indexed owner, address indexed spender, uint256 shares);
@@ -61,8 +62,7 @@ contract Vault is IERC7575, IERC7575Errors {
         shares = previewDeposit(assets);
         if (shares == 0) revert ZeroShares();
 
-        bool ok = IERC20(_asset).transferFrom(msg.sender, address(this), assets);
-        require(ok, "TRANSFER_FROM_FAILED");
+        SafeTokenTransfers.safeTransferFrom(_asset, msg.sender, address(this), assets);
 
         shareBalance[receiver] += shares;
         totalShareSupply += shares;
@@ -91,8 +91,7 @@ contract Vault is IERC7575, IERC7575Errors {
         shareBalance[owner] = currentShares - shares;
         totalShareSupply -= shares;
 
-        bool ok = IERC20(_asset).transfer(receiver, assets);
-        require(ok, "TRANSFER_FAILED");
+        SafeTokenTransfers.safeTransfer(_asset, receiver, assets);
 
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
