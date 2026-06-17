@@ -42,6 +42,21 @@ forge build
 forge test -vv
 ```
 
+### Coverage
+
+```bash
+forge coverage --report summary
+```
+
+Latest baseline (Week 1, `src/` only):
+
+| Contract | Lines | Statements | Branches | Functions |
+|----------|-------|------------|----------|-----------|
+| `Vault.sol` | 95.08% | 96.97% | 92.86% | 86.67% |
+| `SafeTokenTransfers.sol` | 100% | 100% | 100% | 100% |
+
+**Security notes:** [SECURITY.md](./SECURITY.md)
+
 ### Static analysis (Slither)
 
 Slither is integrated in CI (`.github/workflows/test.yml`) with a dedicated `slither` job.
@@ -136,15 +151,20 @@ flowchart TB
 
 ## Current Status
 
+**Week 1 baseline — complete.** Next up: Milestone B (`ShareToken` core).
+
 - [x] Scope and milestones are defined
 - [x] Minimal runnable `deposit/redeem` baseline is implemented
 - [x] Safe transfer hardening (`SafeTokenTransfers`) wired into deposit/redeem
 - [x] Vault active flag, pause/unpause, and `supportsInterface(IERC7575)`
 - [x] `test/EdgeCases.t.sol` — boundary reverts and rounding edges
 - [x] Fuzz tests for preview/deposit and preview/redeem parity (3 fuzz, 256 runs each)
-- [ ] Public test coverage report pending (Day 7)
+- [x] [SECURITY.md](./SECURITY.md) — settlement-layer threat notes
+- [x] Coverage report captured in README (see above)
 
 **Tests:** 41 passing across `Vault.t.sol`, `EdgeCases.t.sol`, `VaultControls.t.sol`, `SafeTokenTransfers.t.sol`
+
+**Week 2 entry:** `ShareToken`, `unregisterVault`, `getTotalNormalizedAssets`, `VaultFactory` (see [MILESTONES.md](./MILESTONES.md))
 
 ## Companion
 

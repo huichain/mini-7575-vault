@@ -23,10 +23,7 @@ Out of scope for this repo:
 
 ## Current Sprint Goal
 
-This week focuses on one target only:
-
-- a runnable synchronous `deposit`/`redeem` flow
-- boundary coverage for zero values, invalid receiver/owner, and preview consistency
+**Week 1 — complete.** Settlement hardening baseline is locked.
 
 Done when:
 
@@ -38,6 +35,9 @@ Done when:
 - Progress: `SafeTokenTransfers` guards deposit/redeem against fee-on-transfer style balance drift.
 - Progress: vault active flag, pause controls, and ERC-165 `supportsInterface` for IERC7575.
 - Progress: `test/EdgeCases.t.sol` with boundary reverts, 6-decimal dust rounding, and 3 fuzz tests (41 tests total).
+- Progress: `SECURITY.md` and coverage summary in README.
+
+**Next sprint:** Milestone B — ShareToken core.
 
 ---
 
@@ -53,9 +53,12 @@ Focus:
 
 Done when:
 
-- `Vault` deposit/mint/withdraw/redeem paths are implemented
+- `Vault` deposit/redeem paths are implemented (mint/withdraw deferred)
 - safe transfer checks are wired into asset in/out flows
 - edge-case tests pass for core boundary conditions
+- `SECURITY.md` documents settlement-layer risks
+
+**Status:** complete (Week 1 baseline). `minDeposit` and full ERC-4626 surface deferred.
 
 ### Milestone B — ShareToken Core
 
@@ -103,4 +106,4 @@ Done when:
 - 30+ Foundry tests including edge cases
 - at least one fuzz test
 - clear README architecture and usage instructions
-- concise SECURITY notes for settlement-layer risks
+- concise SECURITY notes for settlement-layer risks — see [SECURITY.md](../mini-7575-vault/SECURITY.md)
