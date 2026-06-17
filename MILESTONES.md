@@ -37,6 +37,7 @@ Done when:
 - Progress: 6/18 decimal normalization for single-vault conversions implemented with dedicated round-trip and preview consistency tests.
 - Progress: `SafeTokenTransfers` guards deposit/redeem against fee-on-transfer style balance drift.
 - Progress: vault active flag, pause controls, and ERC-165 `supportsInterface` for IERC7575.
+- Progress: `test/EdgeCases.t.sol` with boundary reverts, 6-decimal dust rounding, and 3 fuzz tests (41 tests total).
 
 ---
 

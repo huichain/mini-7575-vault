@@ -140,7 +140,11 @@ flowchart TB
 - [x] Minimal runnable `deposit/redeem` baseline is implemented
 - [x] Safe transfer hardening (`SafeTokenTransfers`) wired into deposit/redeem
 - [x] Vault active flag, pause/unpause, and `supportsInterface(IERC7575)`
-- [ ] Public test coverage report pending
+- [x] `test/EdgeCases.t.sol` — boundary reverts and rounding edges
+- [x] Fuzz tests for preview/deposit and preview/redeem parity (3 fuzz, 256 runs each)
+- [ ] Public test coverage report pending (Day 7)
+
+**Tests:** 41 passing across `Vault.t.sol`, `EdgeCases.t.sol`, `VaultControls.t.sol`, `SafeTokenTransfers.t.sol`
 
 ## Companion
 

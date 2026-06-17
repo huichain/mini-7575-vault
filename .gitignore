@@ -20,3 +20,6 @@ artifacts/
 # Local Python virtual environments
 .venv/
 .venv-slither/
+
+# Personal day-by-day notes (see smart-contract-security-roadmap internal plan)
+notes/
