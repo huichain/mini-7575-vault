@@ -37,7 +37,10 @@ Done when:
 - Progress: `test/EdgeCases.t.sol` with boundary reverts, 6-decimal dust rounding, and 3 fuzz tests (41 tests total).
 - Progress: `SECURITY.md` and coverage summary in README.
 
-**Next sprint:** Milestone B — ShareToken core.
+**Current sprint:** Milestone B — ShareToken core (in progress).
+
+- Progress: enumerable vault registry, `unregisterVault` with zero-balance safety, and `getTotalNormalizedAssets` cross-vault aggregation with 7 focused tests (57 tests total).
+- Remaining: factory flow for reproducible deploy + register.
 
 ---
 

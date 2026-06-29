@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {Vault} from "../src/Vault.sol";
+import {ShareToken} from "../src/ShareToken.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {IERC7575} from "../src/interfaces/IERC7575.sol";
 import {IERC7575Errors} from "../src/interfaces/IERC7575Errors.sol";
@@ -13,6 +14,7 @@ import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 contract VaultControlsTest is Test {
     event VaultActiveStateChanged(bool indexed isActive);
 
+    ShareToken internal shareToken;
     Vault internal vault;
     MockERC20 internal usdc;
 
@@ -23,7 +25,9 @@ contract VaultControlsTest is Test {
 
     function setUp() public {
         usdc = new MockERC20("Mock USDC", "mUSDC", 18);
-        vault = new Vault(address(usdc));
+        shareToken = new ShareToken();
+        vault = new Vault(address(usdc), address(shareToken));
+        shareToken.registerVault(address(usdc), address(vault));
 
         usdc.mint(user, 1_000e18);
         vm.prank(user);

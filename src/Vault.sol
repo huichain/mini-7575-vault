@@ -9,6 +9,7 @@ import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {IERC7575} from "./interfaces/IERC7575.sol";
 import {IERC7575Errors} from "./interfaces/IERC7575Errors.sol";
+import {IShareToken} from "./interfaces/IShareToken.sol";
 import {SafeTokenTransfers} from "./SafeTokenTransfers.sol";
 
 contract Vault is IERC7575, ERC165, Ownable, Pausable, IERC7575Errors {
@@ -16,15 +17,16 @@ contract Vault is IERC7575, ERC165, Ownable, Pausable, IERC7575Errors {
     event VaultActiveStateChanged(bool indexed isActive);
 
     address private immutable _asset;
+    address private immutable _shareToken;
     uint8 private immutable _assetDecimals;
     uint256 private immutable _scalingFactor;
     bool private _isActive;
-    mapping(address => uint256) public shareBalance;
     mapping(address => mapping(address => uint256)) public shareAllowance;
-    uint256 public totalShareSupply;
 
-    constructor(address asset_) Ownable(msg.sender) {
+    constructor(address asset_, address shareToken_) Ownable(msg.sender) {
+        if (shareToken_ == address(0)) revert ZeroAddress();
         _asset = asset_;
+        _shareToken = shareToken_;
         _assetDecimals = IERC20Metadata(asset_).decimals();
         if (_assetDecimals > 18) revert UnsupportedAssetDecimals();
         _scalingFactor = 10 ** (18 - _assetDecimals);
@@ -33,6 +35,10 @@ contract Vault is IERC7575, ERC165, Ownable, Pausable, IERC7575Errors {
 
     function asset() external view returns (address) {
         return _asset;
+    }
+
+    function share() external view returns (address) {
+        return _shareToken;
     }
 
     function isVaultActive() external view returns (bool) {
@@ -93,8 +99,7 @@ contract Vault is IERC7575, ERC165, Ownable, Pausable, IERC7575Errors {
 
         SafeTokenTransfers.safeTransferFrom(_asset, msg.sender, address(this), assets);
 
-        shareBalance[receiver] += shares;
-        totalShareSupply += shares;
+        IShareToken(_shareToken).mint(receiver, shares);
 
         emit Deposit(msg.sender, receiver, assets, shares);
     }
@@ -114,11 +119,10 @@ contract Vault is IERC7575, ERC165, Ownable, Pausable, IERC7575Errors {
         assets = previewRedeem(shares);
         if (assets == 0) revert ZeroAssets();
 
-        uint256 currentShares = shareBalance[owner];
+        uint256 currentShares = IERC20(_shareToken).balanceOf(owner);
         if (currentShares < shares) revert InsufficientShares();
 
-        shareBalance[owner] = currentShares - shares;
-        totalShareSupply -= shares;
+        IShareToken(_shareToken).burn(owner, shares);
 
         SafeTokenTransfers.safeTransfer(_asset, receiver, assets);
 

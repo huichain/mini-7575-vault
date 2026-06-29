@@ -8,6 +8,7 @@ interface IERC7575 {
     );
 
     function asset() external view returns (address);
+    function share() external view returns (address);
     function totalAssets() external view returns (uint256);
 
     function convertToShares(uint256 assets) external view returns (uint256);

@@ -3,11 +3,14 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {Vault} from "../src/Vault.sol";
+import {ShareToken} from "../src/ShareToken.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {IERC7575Errors} from "../src/interfaces/IERC7575Errors.sol";
 
 /// @notice Boundary reverts, rounding edges, and fuzz checks for preview/execution parity.
 contract EdgeCasesTest is Test {
+    ShareToken internal shareToken;
+    ShareToken internal shareToken6;
     Vault internal vault;
     Vault internal vault6;
     MockERC20 internal usdc;
@@ -23,8 +26,14 @@ contract EdgeCasesTest is Test {
     function setUp() public {
         usdc = new MockERC20("Mock USDC", "mUSDC", 18);
         usdc6 = new MockERC20("USDC", "USDC", 6);
-        vault = new Vault(address(usdc));
-        vault6 = new Vault(address(usdc6));
+
+        shareToken = new ShareToken();
+        vault = new Vault(address(usdc), address(shareToken));
+        shareToken.registerVault(address(usdc), address(vault));
+
+        shareToken6 = new ShareToken();
+        vault6 = new Vault(address(usdc6), address(shareToken6));
+        shareToken6.registerVault(address(usdc6), address(vault6));
 
         usdc.mint(user, 1_000e18);
         usdc6.mint(user, 10_000e6);
@@ -117,8 +126,14 @@ contract EdgeCasesTest is Test {
 
     function testUnsupportedAssetDecimalsRevertsOnDeploy() public {
         MockERC20 exotic = new MockERC20("Exotic", "EXO", 19);
+        ShareToken token = new ShareToken();
         vm.expectRevert(IERC7575Errors.UnsupportedAssetDecimals.selector);
-        new Vault(address(exotic));
+        new Vault(address(exotic), address(token));
+    }
+
+    function testZeroShareTokenRevertsOnDeploy() public {
+        vm.expectRevert(IERC7575Errors.ZeroAddress.selector);
+        new Vault(address(usdc), address(0));
     }
 
     // --- fuzz: preview must match execution ---
@@ -132,7 +147,7 @@ contract EdgeCasesTest is Test {
         uint256 actualShares = vault.deposit(assets, user);
 
         assertEq(actualShares, expectedShares);
-        assertEq(vault.shareBalance(user), expectedShares);
+        assertEq(shareToken.balanceOf(user), expectedShares);
     }
 
     function testFuzz_depositPreviewMatchesExecution6Decimals(uint256 assets) public {

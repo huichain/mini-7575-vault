@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {Vault} from "../src/Vault.sol";
+import {ShareToken} from "../src/ShareToken.sol";
 import {SafeTokenTransfers} from "../src/SafeTokenTransfers.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockFeeOnTransferERC20} from "../src/mocks/MockFeeOnTransferERC20.sol";
@@ -71,7 +72,9 @@ contract SafeTokenTransfersTest is Test {
     }
 
     function testVaultDepositRevertsOnFeeOnTransferToken() public {
-        Vault vault = new Vault(address(feeToken));
+        ShareToken shareToken = new ShareToken();
+        Vault vault = new Vault(address(feeToken), address(shareToken));
+        shareToken.registerVault(address(feeToken), address(vault));
 
         vm.prank(user);
         feeToken.approve(address(vault), type(uint256).max);
@@ -82,7 +85,9 @@ contract SafeTokenTransfersTest is Test {
     }
 
     function testVaultRedeemStillSucceedsWithStandardToken() public {
-        Vault vault = new Vault(address(token));
+        ShareToken shareToken = new ShareToken();
+        Vault vault = new Vault(address(token), address(shareToken));
+        shareToken.registerVault(address(token), address(vault));
 
         vm.prank(user);
         token.approve(address(vault), type(uint256).max);

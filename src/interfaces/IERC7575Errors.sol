@@ -11,4 +11,10 @@ interface IERC7575Errors {
     error InsufficientShares();
     error InsufficientAllowance();
     error Unauthorized();
+    error ZeroAddress();
+    error AssetAlreadyRegistered();
+    error AssetMismatch();
+    error VaultShareMismatch();
+    error AssetNotRegistered();
+    error VaultNotEmpty();
 }
